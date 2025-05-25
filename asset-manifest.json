@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/yoshikawasan-invader/static/css/main.e6c13ad2.css",
-    "main.js": "/yoshikawasan-invader/static/js/main.9ee6bd90.js",
+    "main.js": "/yoshikawasan-invader/static/js/main.73153860.js",
     "static/js/453.d24017f6.chunk.js": "/yoshikawasan-invader/static/js/453.d24017f6.chunk.js",
     "index.html": "/yoshikawasan-invader/index.html",
     "main.e6c13ad2.css.map": "/yoshikawasan-invader/static/css/main.e6c13ad2.css.map",
-    "main.9ee6bd90.js.map": "/yoshikawasan-invader/static/js/main.9ee6bd90.js.map",
+    "main.73153860.js.map": "/yoshikawasan-invader/static/js/main.73153860.js.map",
     "453.d24017f6.chunk.js.map": "/yoshikawasan-invader/static/js/453.d24017f6.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.9ee6bd90.js"
+    "static/js/main.73153860.js"
   ]
 }
