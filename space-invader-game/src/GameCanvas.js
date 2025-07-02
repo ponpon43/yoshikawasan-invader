@@ -1,10 +1,32 @@
 import React, { useRef, useEffect, useState } from 'react';
 import enemyImg from './assets/enemy.png';
 
+const messages = [
+  "ジムに行ったらコロナになったね！",
+  "僕の故郷は新潟の糸魚川だね！",
+  "えっ、えっ、えっ、うぇっ！、聞こえないね！",
+  "僕の作ったパエリアおいしいでしょ！",
+  "いつかはげるよ！",
+  "最近、不健康なんだよね！",
+  "それはチャンスボール理論だね！",
+  "今日はネットが高すぎるね！",
+  "微分して！微分して！微分して！",
+  "積分はどんどん飛ばすね！",
+  "落ちるよ！",
+  "北高の非常勤もうできないね！",
+  "いっ！いでやぁ！！",
+  "それは、首が、飛ぶね！",
+  "やらしいね～でもできるよ！",
+  "難しいね～でもできるよ！",
+  "僕は女子は苦手だね！",
+  "僕は昔、不登校の生徒の対応で苦労しましたね！",
+  "朝生徒に怒鳴るとスッキリするね！",
+];
+
 const GameCanvas = () => {
   const canvasRef = useRef(null);
   const width = 300;
-  const height = 300;
+  const height = 500;
 
   const [playerX, setPlayerX] = useState(width / 2 - 15);
   const [playerLives, setPlayerLives] = useState(1);
@@ -18,6 +40,9 @@ const GameCanvas = () => {
 
   const enemyImageRef = useRef(null);
   const enemyDirection = useRef(1);
+
+  const [message, setMessage] = useState('');
+  const [messageTimeoutId, setMessageTimeoutId] = useState(null);
 
   // 敵画像を一度だけ読み込み
 
@@ -33,15 +58,15 @@ const GameCanvas = () => {
   // 敵初期化
   const initEnemies = () => {
     const initialEnemies = [];
-    const enemyWidth = 30;  // ここで描画サイズを指定（縮小サイズ）
-    const enemyHeight = 30;
+    const enemyWidth = 45;  // ここで描画サイズを指定（縮小サイズ）
+    const enemyHeight = 45;
     const rows = 2;
-    const cols = 4;
+    const cols = 5;
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
         initialEnemies.push({
           x: col * (enemyWidth + 10) + 30,
-          y: row * (enemyHeight + 10) + 60,
+          y: row * (enemyHeight + 10) + 120,
           width: enemyWidth,
           height: enemyHeight,
         });
@@ -122,6 +147,14 @@ const GameCanvas = () => {
             ) {
               updatedEnemies.splice(i, 1);
               setScore((s) => s + 10);
+
+              // ランダムメッセージ表示
+              const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+              setMessage(randomMessage);
+              if (messageTimeoutId) clearTimeout(messageTimeoutId);
+              const timeoutId = setTimeout(() => setMessage(''), 3000);  // 3秒で消える
+              setMessageTimeoutId(timeoutId);
+
               hit = true;
               break;
             }
@@ -272,6 +305,14 @@ const GameCanvas = () => {
     ctx.fillText(`残機: ${playerLives}`, 10, 45);
     ctx.fillText(`レベル: ${level}`, 10, 65);
 
+    // ランダムメッセージ表示
+    if (message) {
+      ctx.fillStyle = 'red';
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText(message, 10, 85);
+    }
+
+
     // ゲームオーバー表示
     if (gameOver) {
       ctx.fillStyle = 'rgba(0,0,0,0.7)';
@@ -291,9 +332,15 @@ const GameCanvas = () => {
         style={{ border: '1px solid black', touchAction: 'none' }}
       />
       <div style={{ marginTop: 10 }}>
-        <button onClick={() => setPlayerX((prevX) => Math.max(prevX - 15, 0))}>◀</button>
-        <button onClick={fireBullet}>🔫</button>
-        <button onClick={() => setPlayerX((prevX) => Math.min(prevX + 15, width - 30))}>▶</button>
+        <button 
+        style={{ fontSize: '24px', padding: '10px 20px', margin: '5px' }}
+        onClick={() => setPlayerX((prevX) => Math.max(prevX - 15, 0))}>◀</button>
+        <button
+        style={{ fontSize: '24px', padding: '10px 20px', margin: '5px' }} 
+        onClick={fireBullet}>🔫</button>
+        <button 
+        style={{ fontSize: '24px', padding: '10px 20px', margin: '5px' }}
+        onClick={() => setPlayerX((prevX) => Math.min(prevX + 15, width - 30))}>▶</button>
       </div>
       {gameOver && (
         <div style={{ marginTop: 20 }}>
