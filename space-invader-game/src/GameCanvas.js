@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import enemyImg from './assets/enemy.png';
 
 const GameCanvas = () => {
   const canvasRef = useRef(null);
@@ -12,14 +13,27 @@ const GameCanvas = () => {
   const [enemyBullets, setEnemyBullets] = useState([]);
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
+  const [level, setLevel] = useState(1);
+  const [canFire, setCanFire] = useState(true);
 
+  const enemyImageRef = useRef(null);
   const enemyDirection = useRef(1);
-  const enemySpeed = 2;
-  const enemyDropDistance = 10;
+
+  // 敵画像を一度だけ読み込み
 
   useEffect(() => {
+    const img = new Image();
+    img.src = enemyImg;
+    // img.src = '/enemy.png';  // publicフォルダ直下に置いてください
+    img.onload = () => {
+      enemyImageRef.current = img;
+    };
+  }, []);
+
+  // 敵初期化
+  const initEnemies = () => {
     const initialEnemies = [];
-    const enemyWidth = 30;
+    const enemyWidth = 30;  // ここで描画サイズを指定（縮小サイズ）
     const enemyHeight = 15;
     const rows = 2;
     const cols = 6;
@@ -34,16 +48,21 @@ const GameCanvas = () => {
       }
     }
     setEnemies(initialEnemies);
-  }, []);
+  };
 
+  useEffect(() => {
+    initEnemies();
+  }, [level]);
+
+  // 敵の移動
   useEffect(() => {
     if (gameOver) return;
 
     const interval = setInterval(() => {
       setEnemies((oldEnemies) => {
         if (oldEnemies.length === 0) {
-          setGameOver(true);
-          return oldEnemies;
+          setLevel((prev) => prev + 1);
+          return [];
         }
 
         const xs = oldEnemies.map((e) => e.x);
@@ -63,8 +82,8 @@ const GameCanvas = () => {
 
         const updatedEnemies = oldEnemies.map((enemy) => ({
           ...enemy,
-          x: enemy.x + enemySpeed * newDirection,
-          y: enemy.y + (needDrop ? enemyDropDistance : 0),
+          x: enemy.x + (level + 1) * newDirection,
+          y: enemy.y + (needDrop ? 10 : 0),
         }));
 
         if (updatedEnemies.some((e) => e.y + e.height >= height - 30)) {
@@ -76,52 +95,49 @@ const GameCanvas = () => {
     }, 500);
 
     return () => clearInterval(interval);
-  }, [gameOver]);
+  }, [gameOver, level]);
 
+  // 弾と敵の当たり判定
   useEffect(() => {
     if (gameOver) return;
 
     const interval = setInterval(() => {
-      setBullets((oldBullets) =>
-        oldBullets
+      setBullets((prevBullets) => {
+        const movedBullets = prevBullets
           .map(({ x, y }) => ({ x, y: y - 15 }))
-          .filter(({ y }) => y > 0)
-      );
+          .filter(({ y }) => y > 0);
 
-      setEnemies((oldEnemies) => {
-        let updatedEnemies = [...oldEnemies];
-        setBullets((oldBullets) => {
-          let updatedBullets = [...oldBullets];
+        let updatedEnemies = enemies.slice();
+        const remainingBullets = [];
 
-          for (let b = updatedBullets.length - 1; b >= 0; b--) {
-            for (let e = updatedEnemies.length - 1; e >= 0; e--) {
-              const bullet = updatedBullets[b];
-              const enemy = updatedEnemies[e];
-
-              if (
-                bullet.x < enemy.x + enemy.width &&
-                bullet.x + 5 > enemy.x &&
-                bullet.y < enemy.y + enemy.height &&
-                bullet.y + 10 > enemy.y
-              ) {
-                updatedBullets.splice(b, 1);
-                updatedEnemies.splice(e, 1);
-                setScore((s) => s + 10);
-                break;
-              }
+        movedBullets.forEach((bullet) => {
+          let hit = false;
+          for (let i = 0; i < updatedEnemies.length; i++) {
+            const enemy = updatedEnemies[i];
+            if (
+              bullet.x < enemy.x + enemy.width &&
+              bullet.x + 5 > enemy.x &&
+              bullet.y < enemy.y + enemy.height &&
+              bullet.y + 10 > enemy.y
+            ) {
+              updatedEnemies.splice(i, 1);
+              setScore((s) => s + 10);
+              hit = true;
+              break;
             }
           }
-
-          return updatedBullets;
+          if (!hit) remainingBullets.push(bullet);
         });
 
-        return updatedEnemies;
+        setEnemies(updatedEnemies);
+        return remainingBullets;
       });
     }, 50);
 
     return () => clearInterval(interval);
-  }, [gameOver]);
+  }, [gameOver, enemies]);
 
+  // 敵弾の処理
   useEffect(() => {
     if (gameOver) return;
 
@@ -137,7 +153,10 @@ const GameCanvas = () => {
 
         if (Math.random() < 0.05) {
           const shooter = currentEnemies[Math.floor(Math.random() * currentEnemies.length)];
-          setEnemyBullets((old) => [...old, { x: shooter.x + shooter.width / 2, y: shooter.y + shooter.height }]);
+          setEnemyBullets((old) => [...old, {
+            x: shooter.x + shooter.width / 2,
+            y: shooter.y + shooter.height
+          }]);
         }
 
         return currentEnemies;
@@ -145,7 +164,8 @@ const GameCanvas = () => {
 
       setEnemyBullets((oldEnemyBullets) => {
         let updatedEnemyBullets = [...oldEnemyBullets];
-        updatedEnemyBullets.forEach((bullet, i) => {
+        for (let i = updatedEnemyBullets.length - 1; i >= 0; i--) {
+          const bullet = updatedEnemyBullets[i];
           if (
             bullet.x > playerX &&
             bullet.x < playerX + 30 &&
@@ -157,8 +177,9 @@ const GameCanvas = () => {
               if (newLives <= 0) setGameOver(true);
               return newLives;
             });
+            break;
           }
-        });
+        }
         return updatedEnemyBullets;
       });
     }, 200);
@@ -176,51 +197,81 @@ const GameCanvas = () => {
       } else if (e.key === 'ArrowRight') {
         setPlayerX((prevX) => Math.min(prevX + 15, width - 30));
       } else if (e.key === ' ') {
+        e.preventDefault();
         fireBullet();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [playerX, gameOver]);
+  }, [playerX, gameOver, canFire]);
 
   const fireBullet = () => {
+    if (!canFire) return;
+    setCanFire(false);
+    setTimeout(() => setCanFire(true), 300);
+
     setBullets((oldBullets) => [
       ...oldBullets,
-      { x: playerX + 12, y: height - 40 },
+      { x: playerX + (30 - 5) / 2, y: height - 40 }
     ]);
   };
 
-  // 描画処理
+  const restartGame = () => {
+    setPlayerX(width / 2 - 15);
+    setPlayerLives(3);
+    setBullets([]);
+    setEnemyBullets([]);
+    setScore(0);
+    setLevel(1);
+    setGameOver(false);
+    enemyDirection.current = 1;
+    initEnemies();
+  };
+
+  // 描画
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-
     ctx.clearRect(0, 0, width, height);
 
+    // プレイヤー
     ctx.fillStyle = 'green';
     ctx.fillRect(playerX, height - 30, 30, 10);
 
+    // 弾
     ctx.fillStyle = 'red';
     bullets.forEach(({ x, y }) => {
       ctx.fillRect(x, y, 5, 10);
     });
 
-    ctx.fillStyle = 'blue';
-    enemies.forEach(({ x, y, width, height }) => {
-      ctx.fillRect(x, y, width, height);
-    });
+    // 敵画像（大きい画像を指定サイズに縮小して描画）
 
+    if (enemyImageRef.current) {
+      enemies.forEach(({ x, y, width, height }) => {
+        ctx.drawImage(enemyImageRef.current, x, y, width, height);
+      });
+    } else {
+      ctx.fillStyle = 'blue';
+      enemies.forEach(({ x, y, width, height }) => {
+        ctx.fillRect(x, y, width, height);
+      });
+    }
+
+    // 敵弾
     ctx.fillStyle = 'purple';
     enemyBullets.forEach(({ x, y }) => {
       ctx.fillRect(x, y, 5, 10);
     });
 
+    // スコア等
     ctx.fillStyle = 'black';
-    ctx.font = '20px Arial';
+    ctx.font = '16px Arial';
     ctx.fillText(`得点: ${score}`, 10, 25);
-    ctx.fillText(`残機: ${playerLives}`, 10, 50);
+    ctx.fillText(`残機: ${playerLives}`, 10, 45);
+    ctx.fillText(`レベル: ${level}`, 10, 65);
 
+    // ゲームオーバー表示
     if (gameOver) {
       ctx.fillStyle = 'rgba(0,0,0,0.7)';
       ctx.fillRect(0, 0, width, height);
@@ -228,12 +279,7 @@ const GameCanvas = () => {
       ctx.font = '30px Arial';
       ctx.fillText('GAME OVER', width / 2 - 90, height / 2);
     }
-  }, [playerX, bullets, enemies, enemyBullets, score, playerLives, gameOver]);
-
-  // タッチボタンの動作
-  const handleLeft = () => setPlayerX((prevX) => Math.max(prevX - 15, 0));
-  const handleRight = () => setPlayerX((prevX) => Math.min(prevX + 15, width - 30));
-  const handleFire = () => fireBullet();
+  }, [playerX, bullets, enemies, enemyBullets, score, playerLives, gameOver, level]);
 
   return (
     <div style={{ textAlign: 'center' }}>
@@ -244,10 +290,15 @@ const GameCanvas = () => {
         style={{ border: '1px solid black', touchAction: 'none' }}
       />
       <div style={{ marginTop: 10 }}>
-        <button onClick={handleLeft}>◀</button>
-        <button onClick={handleFire}>🔫</button>
-        <button onClick={handleRight}>▶</button>
+        <button onClick={() => setPlayerX((prevX) => Math.max(prevX - 15, 0))}>◀</button>
+        <button onClick={fireBullet}>🔫</button>
+        <button onClick={() => setPlayerX((prevX) => Math.min(prevX + 15, width - 30))}>▶</button>
       </div>
+      {gameOver && (
+        <div style={{ marginTop: 20 }}>
+          <button onClick={restartGame}>🔁 もう一度</button>
+        </div>
+      )}
     </div>
   );
 };
