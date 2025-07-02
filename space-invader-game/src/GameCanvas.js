@@ -7,7 +7,7 @@ const GameCanvas = () => {
   const height = 300;
 
   const [playerX, setPlayerX] = useState(width / 2 - 15);
-  const [playerLives, setPlayerLives] = useState(3);
+  const [playerLives, setPlayerLives] = useState(1);
   const [bullets, setBullets] = useState([]);
   const [enemies, setEnemies] = useState([]);
   const [enemyBullets, setEnemyBullets] = useState([]);
@@ -34,9 +34,9 @@ const GameCanvas = () => {
   const initEnemies = () => {
     const initialEnemies = [];
     const enemyWidth = 30;  // ここで描画サイズを指定（縮小サイズ）
-    const enemyHeight = 15;
+    const enemyHeight = 30;
     const rows = 2;
-    const cols = 6;
+    const cols = 4;
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
         initialEnemies.push({
@@ -166,10 +166,11 @@ const GameCanvas = () => {
         let updatedEnemyBullets = [...oldEnemyBullets];
         for (let i = updatedEnemyBullets.length - 1; i >= 0; i--) {
           const bullet = updatedEnemyBullets[i];
+
           if (
             bullet.x > playerX &&
             bullet.x < playerX + 30 &&
-            bullet.y + 10 >= height - 30
+            bullet.y + 10 >= height - 20
           ) {
             updatedEnemyBullets.splice(i, 1);
             setPlayerLives((lives) => {
@@ -219,7 +220,7 @@ const GameCanvas = () => {
 
   const restartGame = () => {
     setPlayerX(width / 2 - 15);
-    setPlayerLives(3);
+    setPlayerLives(1);
     setBullets([]);
     setEnemyBullets([]);
     setScore(0);
