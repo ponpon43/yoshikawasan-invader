@@ -26,7 +26,7 @@ const messages = [
 const GameCanvas = () => {
   const canvasRef = useRef(null);
   const width = 300;
-  const height = 500;
+  const height = 400;
 
   const [playerX, setPlayerX] = useState(width / 2 - 15);
   const [playerLives, setPlayerLives] = useState(1);

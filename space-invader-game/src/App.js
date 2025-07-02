@@ -4,7 +4,7 @@ import GameCanvas from './GameCanvas';
 function App() {
   return (
     <div className="App">
-      <h1>スペースインベーダー風ゲーム</h1>
+      <h1>吉川さんインベーダーゲーム</h1>
       <GameCanvas />
     </div>
   );
