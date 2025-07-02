@@ -58,15 +58,15 @@ const GameCanvas = () => {
   // 敵初期化
   const initEnemies = () => {
     const initialEnemies = [];
-    const enemyWidth = 45;  // ここで描画サイズを指定（縮小サイズ）
-    const enemyHeight = 45;
-    const rows = 2;
-    const cols = 5;
+    const enemyWidth = 20;  // ここで描画サイズを指定（縮小サイズ）
+    const enemyHeight = 30;
+    const rows = 4;
+    const cols = 8;
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
         initialEnemies.push({
           x: col * (enemyWidth + 10) + 30,
-          y: row * (enemyHeight + 10) + 120,
+          y: row * (enemyHeight + 20) + 120,
           width: enemyWidth,
           height: enemyHeight,
         });
@@ -107,8 +107,8 @@ const GameCanvas = () => {
 
         const updatedEnemies = oldEnemies.map((enemy) => ({
           ...enemy,
-          x: enemy.x + (level + 1) * newDirection,
-          y: enemy.y + (needDrop ? 10 : 0),
+          x: enemy.x + (level + 1) *2* newDirection,
+          y: enemy.y + (needDrop ? 15 : 0),
         }));
 
         if (updatedEnemies.some((e) => e.y + e.height >= height - 30)) {
@@ -308,7 +308,7 @@ const GameCanvas = () => {
     // ランダムメッセージ表示
     if (message) {
       ctx.fillStyle = 'red';
-      ctx.font = 'bold 16px Arial';
+      ctx.font = 'bold 11px Arial';
       ctx.fillText(message, 10, 85);
     }
 
